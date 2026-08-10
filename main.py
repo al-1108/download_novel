@@ -104,29 +104,48 @@ if not html_content:
     print("No chapters were downloaded.")
     exit()
 
+chapters = []
+
+for i, content in enumerate(html_content):
+    if i > 0:
+        chapters.append('<div class="blank-page">&nbsp;</div>')
+
+    chapters.append(f"""
+        <div class="chapter">
+            {content}
+        </div>
+    """)
+
+body_html = ''.join(chapters)
+
 pdf_html = f"""
 <html>
 <head>
-    <style>
-        @page {{
-            size: A4;
-            margin: 10mm;
-        }}
+    <meta charset="UTF-8">
 
+    <style>
         body {{
             font-family: serif;
             font-size: 35px;
             line-height: 1.6;
             margin: 0;
         }}
+
+        .blank-page {{
+            break-before: page;
+            break-after: page;
+            height: 1px;
+            color: transparent;
+        }}
     </style>
 </head>
 
 <body>
-    {"".join(html_content)}
+    {body_html}
 </body>
 </html>
 """
+
 
 HTML(string=pdf_html, base_url=base_url).write_pdf(
     f"chapters_{start_ch}-{end_ch}.pdf"
