@@ -1,5 +1,5 @@
 ## setup
-1. python3 -m venv .venv
-2. source .venv/bin/activate
-3. pip install -r requirements.txt
-4. 
+1. Install system dependencies for WeasyPrint (macOS): `brew install pango`
+2. python3 -m venv .venv
+3. source .venv/bin/activate
+4. pip install -r requirements.txt
