@@ -1,11 +1,46 @@
 import requests
+import re
+from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 from weasyprint import HTML
 from time import sleep
 
-# url = input("enter freewebnovel url: ")
+def get_url():
+    while True:
+        url = input("Enter FreeWebNovel URL: ").strip()
 
-url = "https://freewebnovel.com/novel/reverend-insanity/chapter-2334"
+        # Allow user to omit https://
+        if not url.startswith(("http://", "https://")):
+            url = "https://" + url
+
+        parsed = urlparse(url)
+
+        # Make sure it's actually FreeWebNovel
+        if parsed.netloc not in ("freewebnovel.com", "www.freewebnovel.com"):
+            print("Please enter a FreeWebNovel URL.")
+            continue
+
+        # Remove trailing /
+        url = url.rstrip("/")
+
+        # If chapter is already in URL
+        if re.search(r"/chapter-\d+$", url):
+            return url
+
+        # If they gave just the novel URL
+        if "/novel/" in parsed.path:
+            while True:
+                chapter = input("No chapter found. What chapter are you on? ").strip()
+
+                if chapter.isdigit() and int(chapter) > 0:
+                    return f"{url}/chapter-{chapter}"
+
+                print("Please enter a valid chapter number.")
+
+        print("That doesn't look like a valid novel URL.")
+
+url = get_url()
+# url = "https://freewebnovel.com/novel/reverend-insanity/chapter-2334"
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) Gecko/20100101 Firefox/141.0"
@@ -35,7 +70,3 @@ pdf_html = f"""
 </html>
 """
 HTML(string=pdf_html, base_url=url).write_pdf("chapters2.pdf")
-
-# print(response.status_code)
-# response.raise_for_status()
-# print(response.text[:1000])
