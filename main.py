@@ -107,24 +107,27 @@ if not html_content:
 pdf_html = f"""
 <html>
 <head>
-    <meta charset="UTF-8">
-
     <style>
+        @page {{
+            size: A4;
+            margin: 10mm;
+        }}
+
         body {{
             font-family: serif;
-            font-size: 25px;
+            font-size: 35px;
             line-height: 1.6;
-            margin: 10px;
+            margin: 0;
         }}
     </style>
 </head>
 
-    {"".join(
-        f'<div class="chapter">{chapter}</div>'
-        for chapter in html_content
-    )}
+<body>
+    {"".join(html_content)}
+</body>
 </html>
 """
+
 HTML(string=pdf_html, base_url=base_url).write_pdf(
     f"chapters_{start_ch}-{end_ch}.pdf"
 )
