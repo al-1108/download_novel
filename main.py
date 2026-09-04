@@ -55,7 +55,7 @@ base_url = re.sub(r"/chapter-\d+$", "", url)
 chs = int(input("How many chs do you want to download?: "))
 end_ch = start_ch + chs - 1
 
-html_content = []
+downloaded_chapters = []
 for chapter in range(start_ch, start_ch + chs):
     chapter_url = f"{base_url}/chapter-{chapter}"
 
@@ -96,27 +96,42 @@ for chapter in range(start_ch, start_ch + chs):
 
     print(f"Chapter {chapter} downloaded successfully.")
 
-    html_content.append(str(content))
+    downloaded_chapters.append((chapter, str(content)))
 
     sleep(0.5)
 
-if not html_content:
+if not downloaded_chapters:
     print("No chapters were downloaded.")
     exit()
 
 chapters = []
 
-for i, content in enumerate(html_content):
+for i, (chapter_number, content) in enumerate(downloaded_chapters):
     if i > 0:
         chapters.append('<div class="blank-page">&nbsp;</div>')
 
     chapters.append(f"""
-        <div class="chapter">
+        <div class="chapter" id="chapter-{chapter_number}">
             {content}
         </div>
     """)
 
 body_html = ''.join(chapters)
+
+toc_entries = ''.join(
+    f'<li><a href="#chapter-{chapter_number}">Chapter {chapter_number}</a></li>'
+    for chapter_number, _ in downloaded_chapters
+)
+
+toc_html = f"""
+    <section class="table-of-contents">
+        <h1>Table of Contents</h1>
+        <ol>
+            {toc_entries}
+        </ol>
+    </section>
+    <div class="blank-page">&nbsp;</div>
+"""
 
 pdf_html = f"""
 <html>
@@ -137,10 +152,20 @@ pdf_html = f"""
             height: 1px;
             color: transparent;
         }}
+
+        .table-of-contents h1 {{
+            text-align: center;
+        }}
+
+        .table-of-contents a {{
+            color: blue;
+            text-decoration: underline;
+        }}
     </style>
 </head>
 
 <body>
+    {toc_html}
     {body_html}
 </body>
 </html>
