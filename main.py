@@ -111,7 +111,7 @@ for i, (chapter_number, content) in enumerate(downloaded_chapters):
         chapters.append('<div class="blank-page">&nbsp;</div>')
 
     chapters.append(f"""
-        <div class="chapter" id="chapter-{chapter_number}">
+        <div class="chapter" id="chapter-{chapter_number}" data-chapter-title="Chapter {chapter_number}">
             {content}
         </div>
     """)
@@ -139,6 +139,22 @@ pdf_html = f"""
     <meta charset="UTF-8">
 
     <style>
+        @page chapter {{
+            margin-top: 85px;
+
+            @top-center {{
+                content: string(chapter-title);
+                font-family: serif;
+                font-size: 24px;
+                font-weight: bold;
+            }}
+        }}
+
+        .chapter {{
+            page: chapter;
+            string-set: chapter-title attr(data-chapter-title);
+        }}
+
         body {{
             font-family: serif;
             font-size: 35px;
