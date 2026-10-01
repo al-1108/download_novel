@@ -1,5 +1,6 @@
 import requests
 import re
+from html import escape
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 from weasyprint import HTML
@@ -89,14 +90,26 @@ for chapter in range(start_ch, start_ch + chs):
 
     soup = BeautifulSoup(response.text, "html.parser")
     content = soup.find("div", id="article")
-
     if content is None:
         print(f"Could not find article content for chapter {chapter}.")
         continue
 
+    title_element = soup.find("span", class_="chapter")
+    chapter_title = title_element.get_text(" ", strip=True) if title_element else ""
+
+    # Replace an existing chapter heading so the title appears only once.
+    content_heading = content.find(re.compile(r"^h[1-6]$"))
+    if content_heading and re.match(
+        rf"^chapter\s+{chapter}\b", content_heading.get_text(strip=True), re.I
+    ):
+        chapter_title = chapter_title or content_heading.get_text(" ", strip=True)
+        content_heading.decompose()
+
+    chapter_title = chapter_title or f"Chapter {chapter}"
+
     print(f"Chapter {chapter} downloaded successfully.")
 
-    downloaded_chapters.append((chapter, str(content)))
+    downloaded_chapters.append((chapter, chapter_title, str(content)))
 
     sleep(0.5)
 
@@ -106,12 +119,13 @@ if not downloaded_chapters:
 
 chapters = []
 
-for i, (chapter_number, content) in enumerate(downloaded_chapters):
+for i, (chapter_number, chapter_title, content) in enumerate(downloaded_chapters):
     if i > 0:
         chapters.append('<div class="blank-page">&nbsp;</div>')
 
     chapters.append(f"""
         <div class="chapter" id="chapter-{chapter_number}" data-chapter-title="Chapter {chapter_number}">
+            <h2 class="chapter-heading">{escape(chapter_title)}</h2>
             {content}
         </div>
     """)
@@ -120,7 +134,7 @@ body_html = ''.join(chapters)
 
 toc_entries = ''.join(
     f'<li><a href="#chapter-{chapter_number}">Chapter {chapter_number}</a></li>'
-    for chapter_number, _ in downloaded_chapters
+    for chapter_number, _, _ in downloaded_chapters
 )
 
 toc_html = f"""
@@ -153,6 +167,13 @@ pdf_html = f"""
         .chapter {{
             page: chapter;
             string-set: chapter-title attr(data-chapter-title);
+        }}
+
+        .chapter-heading {{
+            font-size: 1em;
+            font-weight: bold;
+            margin: 0 0 1em;
+            break-after: avoid;
         }}
 
         body {{
