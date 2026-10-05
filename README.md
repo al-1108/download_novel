@@ -4,4 +4,3 @@
 3. source .venv/bin/activate
 4. pip install -r requirements.txt
 5. python3 main.py
-6. dont be stupid and break something
